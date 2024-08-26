@@ -39,3 +39,27 @@ remove_snap_revisions(){
     fi
 }
 
+schedule_removal(){
+    # check if the script is already in crontab
+    if crontab -l | grep -q "$0"; then 
+        echo "Cleanup is already scheduled. No changes made"
+        return
+    fi
+
+    # add the script to crontab to run weekly
+    (crontab -l 2>/dev/null;echo "0 0 * * 0 $0 --run") | crontab -
+
+    echo "Cleanup scheduled to run weekly on Sunday at midnight"
+}
+
+# check for command line arguments
+if [ "$1" = "--schedule" ]; then
+    schedule_removal
+elif [ "$1" = "--run" ]; then
+    remove_snap_revisions
+else 
+    echo "Usage: $0 [--schedule --run]"
+    echo "--schedule: Schedule the script to run weekly"
+    echo "--run: Run the cleanup immediately"
+    exit 1
+fi
